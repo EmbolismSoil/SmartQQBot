@@ -8,6 +8,9 @@ import re
 import json
 from random import randint
 from threading import Thread
+from PIL import Image
+from pyzbar import pyzbar
+import qrcode_terminal
 
 try:
     from html import unescape as html_unescape
@@ -55,7 +58,16 @@ class QRLoginFailed(UserWarning):
     pass
 
 
-def show_qr(path):
+def show_qr_code(path):
+    qr_image = Image.open(path)
+    decoded = pyzbar.decode(qr_image)[0]
+    url = decoded.data.decode('utf-8')
+    qrcode_terminal.draw(url)
+
+
+def show_qr(path, has_gui):
+    import ipdb; ipdb.set_trace()  # XXX BREAKPOINT
+
     import platform
     try:
         from six.moves.tkinter import Tk, Label
@@ -295,10 +307,11 @@ class QQBot(object):
                 self.qrcode_path
             )
             qrsig = self.client.get_cookie('qrsig')
-            if not no_gui:
-                thread = Thread(target=show_qr, args=(self.qrcode_path, ))
-                thread.setDaemon(True)
-                thread.start()
+            show_qr_code(self.qrcode_path)
+            # if not no_gui:
+                # thread = Thread(target=show_qr_code, args=(self.qrcode_path, ))
+                # thread.setDaemon(True)
+                # thread.start()
 
             while True:
                 ret_code, redirect_url = self._get_qr_login_status(
